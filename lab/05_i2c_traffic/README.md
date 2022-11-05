@@ -1,5 +1,5 @@
 ### TODO:
 
-- use your Lab 1 firefly code to generate ADPS9960 I2C traffic and display it on a lab oscilloscope
-- take a screenshot of some portion of this exchange, and figure out/annotate what's happening based on the protocol documentation in the ADPS9960 datasheet 
+I2C Trace captured:
 
+![IMG_20221104_120307](https://user-images.githubusercontent.com/40466274/200099332-9d0047f8-80fc-4bb1-94d5-9c7d9eb7bc88.jpg)
