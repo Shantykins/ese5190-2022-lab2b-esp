@@ -1,86 +1,86 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "pico/stdlib.h"
 #include "pio_i2c.h"
+#include "hardware/pio.h"
+#include "hardware/clocks.h"
 
-#define PIN_SDA 2
-#define PIN_SCL 3
+#include "boards/adafruit_qtpy_rp2040.h"
+
+#define PIN_SDA 22
+#define PIN_SCL 23
 
 bool reserved_addr(uint8_t addr) {
     return (addr & 0x78) == 0 || (addr & 0x78) == 0x78;
 }
 
+void config_adps(PIO pio, uint sm){
+
+    uint8_t txbuf[2] = {0};
+
+    // Set Color Integration time to `50` => 256 - 50 = 206 = 0xCE
+    txbuf[0] = ATIME_REGISTER;
+    txbuf[1] = (uint8_t)(0x81);
+    pio_i2c_write_blocking(pio, sm, APDS_ADDRESS, txbuf, 2);
+
+    // Config the Control Register.
+    txbuf[0] = APDS_CONTROL_ONE_REGISTER;
+    txbuf[1] = APDS_CONTROL_ONE_AGAIN;
+    pio_i2c_write_blocking(pio, sm, APDS_ADDRESS, txbuf, 2);
+
+    // Enable Ambient Light and Proximity Sensor
+    txbuf[0] = APDS_ENABLE_REGISTER;
+    txbuf[1] = APDS_ENABLE_PON | APDS_ENABLE_AEN | APDS_ENABLE_PEN;
+    pio_i2c_write_blocking(pio, sm, APDS_ADDRESS, txbuf, 2);
+}
+
+void adps_read(PIO pio, uint sm, uint8_t reg_addr, uint8_t *rxbuf, uint num_bytes) {
+    // Read from `reg_addr`.
+    pio_i2c_write_blocking(pio, sm, APDS_ADDRESS, &reg_addr, 1);  
+    pio_i2c_read_blocking(pio, sm, APDS_ADDRESS, rxbuf, num_bytes);
+}
+
 int main() {
     stdio_init_all();
-
-    int addr = 0x39;
 
     PIO pio = pio0;
     uint sm = 0;
     uint offset = pio_add_program(pio, &i2c_program);
     i2c_program_init(pio, sm, offset, PIN_SDA, PIN_SCL);
-
-
-    uint8_t buf[2];
-
-    // send register number followed by its corresponding value
-    buf[0] = 0x80;
-    buf[1] = 0x3;
-    pio_i2c_write_blocking(pio, sm, addr, buf, 2, false);
-
-    buf[0] = 0x81;
-    buf[1] = 219;
-    pio_i2c_write_blocking(pio, sm, addr, buf, 2, false);
-
-    int r, g, b, c;
-
-    sleep_ms(10);
-
     
+    // Wait until USB is connected.
+    while(!stdio_usb_connected());
+
+    printf("Starting PIO I2C APDS9960 Interface\n");
  
-    //printf("\nPIO I2C Bus Scan\n");
-    //printf("   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n");
-    while(1)
-    {
-        uint8_t buf[2];
-        uint8_t reg = 0x94;
-        pio_i2c_write_blocking(pio, sm, addr, &reg, 1, true);  // true to keep master control of bus
-        pio_i2c_read_blocking(pio, sm, addr, buf, 8);  // false - finished with bus
+    // Configure the APDS Sensor.
+    config_adps(pio, sm);
 
-        c = (buf[1] << 8) | buf[0];
-        r = (buf[3] << 8) | buf[2];
-        g = (buf[5] << 8) | buf[4];
-        b = (buf[7] << 8) | buf[6];
+    while(1) {
+        
+        // Check the status register, to know if we can read the values
+        // from the ALS and Proximity engine.
+        uint8_t rxbuf[1] = {0};
 
-        printf("r:%d, g:%d, b:%d, c:%d\n", r, g, b, c);
+        adps_read(pio, sm, STATUS_REGISTER, rxbuf, 1);
+        adps_read(pio, sm, ID_REGISTER, rxbuf, 1);
+        
 
-        sleep_ms(1000);
+        uint8_t data_arr[8] = {0};
+        adps_read(pio, sm, PROXIMITY_DATA_REGISTER, data_arr, 1);
+        printf("The Proximity Data : %d\n", data_arr[0] - 230);
 
+        adps_read(pio, sm, RGBC_DATA_REGISTER_CDATAL, data_arr, 8);
+        uint16_t c_val = (data_arr[1] << 8 | data_arr[0]); 
+        uint16_t r_val = (data_arr[3] << 8 | data_arr[2]); 
+        uint16_t g_val = (data_arr[5] << 8 | data_arr[4]); 
+        uint16_t b_val = (data_arr[7] << 8 | data_arr[6]); 
+        printf("The Color Data : (%d, %d, %d, %d)\n", r_val, g_val, b_val, c_val);
+
+
+        sleep_ms(500); 
     }
-    
-
-   /*
-   while(!stdio_usb_connected());
-
-    for (int addr = 0; addr < (1 << 7); ++addr) {
-        if (addr % 16 == 0) {
-            printf("%02x ", addr);
-        }
-        // Perform a 0-byte read from the probe address. The read function
-        // returns a negative result NAK'd any time other than the last data
-        // byte. Skip over reserved addresses.
-        int result;
-        if (reserved_addr(addr))
-            result = -1;
-        else
-            result = pio_i2c_read_blocking(pio, sm, addr, NULL, 0);
-
-        printf(result < 0 ? "." : "@");
-        printf(addr % 16 == 15 ? "\n" : "  ");
-    }
-
-    */
-    
-    printf("Done.\n");
+ 
     return 0;
 }
