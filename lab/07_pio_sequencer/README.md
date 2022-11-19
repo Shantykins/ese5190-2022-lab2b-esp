@@ -18,6 +18,8 @@ a. Read one byte of data from the specified pin(in this case pin 21).
 b. Push the read byte to the RX FIFO.
 c. Keep looping.
 
+https://user-images.githubusercontent.com/114099174/202832727-c6378348-e6f4-436a-886f-8384dccb033d.mp4
+
 .wrap_target
  again:
  in pins, 1
