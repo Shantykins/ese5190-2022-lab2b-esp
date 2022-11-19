@@ -43,6 +43,11 @@ void adps_read(PIO pio, uint sm, uint8_t reg_addr, uint8_t *rxbuf, uint num_byte
 
 int main() {
     stdio_init_all();
+    
+    //
+    // Timestamps array
+    //
+     int timestamps[100];
 
     PIO pio = pio0;
     uint sm = 0;
@@ -56,8 +61,10 @@ int main() {
  
     // Configure the APDS Sensor.
     config_adps(pio, sm);
+    
+   
 
-    while(1) {
+    while(i++<100) {
         
         // Check the status register, to know if we can read the values
         // from the ALS and Proximity engine.
@@ -79,6 +86,8 @@ int main() {
         printf("The Color Data : (%d, %d, %d, %d)\n", r_val, g_val, b_val, c_val);
         
         set_neopixel_colour(data_arr);
+        
+        printf("%d",timestamps[i]);
 
 
         sleep_ms(500); 
