@@ -11,6 +11,8 @@
 3. The Pin instances are changed to read the data from the SDA lines from the sensor. The i2c pin on the QTPY Board is 22 and hence the pin instance is set to 22.
 The boot button macro is also defined. The number of captuirng samples is also set to 50000. Since we want to read data from the SDA (22) and SCL(23), the pin count is set to 2
 
+![Screenshot 2022-11-18 212718](https://user-images.githubusercontent.com/40466274/202832116-ac798f58-77df-40b8-830f-377b0a60f125.png)
+
 #define BOOT_PIN_NUM 21
 
 const uint CAPTURE_PIN_BASE = 22;
@@ -67,6 +69,7 @@ if (!gpio_get(BOOT_PIN_NUM))
         }
         else
         {
+
             continue;
         }
         sleep_ms(500);
