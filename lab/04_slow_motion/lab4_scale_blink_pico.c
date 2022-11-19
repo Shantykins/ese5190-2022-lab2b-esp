@@ -16,16 +16,16 @@
 
 #define QTPY_BOOT_PIN_NUM 21
 
-#define CONST_TIME_SCALING_FACTOR 50
+#define Scale 70
 
+#define Total_presses 5
 
 #ifdef PICO_DEFAULT_WS2812_PIN
 #define WS2812_PIN PICO_DEFAULT_WS2812_PIN
 #else
-// default to pin 2 if the board doesn't have a default WS2812 pin defined
+
 #define WS2812_PIN 2
 #endif
-
 
 
 void set_neopixel_color(uint32_t color_num){
@@ -65,11 +65,14 @@ int main() {
     while(1){
 
         
-        int counter = 0;
+        int counter = 0; 
         int i = 0;
         int getcount[5] = {0};
         
-    
+        
+        while((play_mode = getchar_timeout_us(5000)) < 0);
+        
+        if (play_mode == 'r') {
             while (i < 5){
                 uint32_t boot_status = register_read(QTPY_BOOT_PIN_REG);
                 if(boot_status != 0){
@@ -85,10 +88,8 @@ int main() {
                 sleep_ms(100);
             }
             printf("\n");
-        
-        while((play_mode = getchar_timeout_us(5000)) < 0);
-        if (play_mode == 's') {
-           
+        } if (play_mode == 'p') {
+            
             int counter_in = 0;
             
             i = 0;
@@ -99,16 +100,32 @@ int main() {
                 set_neopixel_color(0xffafaf);
                 sleep_ms(500);
                 set_neopixel_color(0);
-                sleep_ms((int)(counter_in)*(CONST_TIME_SCALING_FACTOR+500));
+                sleep_ms((int)(counter_in)*Scale);
                 i = i+1;
-                printf("replayed\n");
+                printf("Replayed\n");
             }
-            printf("Done replaying all occurences\n");
+            printf("Done replaying all the occurences\n");
+        } if (play_mode == 's') {
             
+            int counter_in = 0;
+            
+            i = 0;
+            while (i < 5){
+                
+                scanf("%d", &counter_in);
+                
+                set_neopixel_color(0xffafaf);
+                sleep_ms(500);
+                set_neopixel_color(0);
+                sleep_ms((int)(counter_in)*(Scale+500));
+                i = i+1;
+                printf("Replayed\n");
+            }
+            printf("Done replaying all the occurences\n");
         } if (play_mode == 'f') {
-           
+            
             int counter_in = 0;
-           
+            
             i = 0;
             while (i < 5){
                 
@@ -117,11 +134,11 @@ int main() {
                 set_neopixel_color(0xffafaf);
                 sleep_ms(500);
                 set_neopixel_color(0);
-                sleep_ms((int)(counter_in)*(CONST_TIME_SCALING_FACTOR-20));
+                sleep_ms((int)(counter_in)*(Scale-20));
                 i = i+1;
-                printf("replayed\n");
+                printf("Replayed\n");
             }
-            printf("Done replaying all occurences\n");
+            printf("Done replaying all the occurences\n");
         }
         sleep_ms(100);
     }
