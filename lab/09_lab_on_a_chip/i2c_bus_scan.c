@@ -77,6 +77,8 @@ int main() {
         uint16_t g_val = (data_arr[5] << 8 | data_arr[4]); 
         uint16_t b_val = (data_arr[7] << 8 | data_arr[6]); 
         printf("The Color Data : (%d, %d, %d, %d)\n", r_val, g_val, b_val, c_val);
+        
+        set_neopixel_colour(data_arr);
 
 
         sleep_ms(500); 
