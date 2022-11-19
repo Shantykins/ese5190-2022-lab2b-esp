@@ -18,10 +18,14 @@ if os.path.exists("recording.txt"):
 
 
 while True:
-    
+    print("Start")
+    play_mode = input("Please enter the macro:")
+    if play_mode == 'r':
         if os.path.exists("recording.txt"):
             os.remove("recording.txt")
         
+        input_val = bytes(play_mode, 'utf-8')
+        ser.write(input_val)
         while (counter != b'\r\n'):
             
             if ser.is_open:
@@ -39,12 +43,9 @@ while True:
         
         
         file_name.close() 
-
-        print("Start")
-        play_mode = input("Enter play_mode:")
-        if play_mode == 's' or play_mode == 'f': 
+    if play_mode == 'p' or play_mode == 's' or play_mode == 'f': 
         
-         file_name = open("recording.txt", "r")
+        file_name = open("recording.txt", "r")
         
        
         flag = 0
@@ -59,15 +60,15 @@ while True:
         counter = ser.readline()
         
         
-        while (counter != b'Done replaying all occurences\r\n'):
+        while (counter != b'Done replaying all the occurences\r\n'):
             print(counter)
             
-            if (flag == 0 or counter == b'replayed\r\n'):
+            if (flag == 0 or counter == b'Replayed\r\n'):
                 
                 file_val = bytes(file_val_arr[i], 'utf-8')
                 
                 print(file_val)
-               
+                
                 ser.write(file_val)
                 
                 i += 2
@@ -77,7 +78,7 @@ while True:
                 
                 flag = 1
         
-            
+        
             counter = ser.readline()
         
         
